@@ -1,0 +1,121 @@
+{
+  "ts": 1762155816165,
+  "chat_id": "15d0bcce",
+  "runtime": {
+    "host": "http://localhost:11434",
+    "runtime_default": "hybrid",
+    "llm_primary": "deepseek-v3.1:671b-cloud",
+    "llm_fallback": "qwen2.5:7b-math",
+    "rewriter_enabled": true,
+    "rewriter_model": "glm-4.6:cloud"
+  },
+  "input_question": "donne moi un exemple plus complexe",
+  "auto_link": false,
+  "allow_oot": true,
+  "filters": {
+    "doc_type": null,
+    "chapter": null,
+    "block_kind": null,
+    "block_id": null
+  },
+  "follow_up": true,
+  "rewriter": {
+    "enabled": true,
+    "model": "glm-4.6:cloud",
+    "input": {
+      "last_q": "Explique le théoExplique le théorème des valeurs intermédiaires et donne un exemple.",
+      "new_q": "donne moi un exemple plus complexe",
+      "ctx": "(aucun)"
+    },
+    "prompt_preview": "Human: Tu reformules des questions courtes d'étudiants en requêtes auto-suffisantes pour la recherche de contexte.\nSi on te donne un CONTEXTE (chapitre, type de bloc, identifiant), intègre-le explicitement.\nGarde une longueur raisonnable et des mots-clés concrets. Pas de politesse.\n\n[DERNIÈRE QUESTION]\nExplique le théoExplique le théorème des valeurs intermédiaires et donne un exemple.\n\n[NOUVELLE QUESTION]\ndonne moi un exemple plus complexe\n\n[CONTEXTE]\n(aucun)\n\nConsigne:\n- Si la nouvelle question est une relance ou dépend du contexte, écris une requête condensée qui précise le chapitre et le bloc (s'ils sont fournis).\n- Sinon, renvoie simplement la nouvelle question telle quelle.\n- Sors uniquement la requête réécrite (une ligne).\n",
+    "latency_ms": 5991,
+    "output": "Exemple complexe du théorème des valeurs intermédiaires"
+  },
+  "rewritten_q": "Exemple complexe du théorème des valeurs intermédiaires",
+  "router": {
+    "decision": "llm_first",
+    "task": "qa",
+    "rag_conf": 0.4593584749274762,
+    "passport": {
+      "chat_id": "15d0bcce",
+      "turn_id": "b64f04f4",
+      "user_query_raw": "donne moi un exemple plus complexe",
+      "user_query_rewritten": "Exemple complexe du théorème des valeurs intermédiaires",
+      "filters": {},
+      "routing": {
+        "decision": "llm_first",
+        "rag_conf": 0.459,
+        "thresholds": {
+          "rag_first": 0.55,
+          "llm_first": 0.35
+        },
+        "weights": {
+          "sim": 0.65,
+          "struct": 0.2,
+          "kw": 0.075,
+          "pin": 0.075
+        },
+        "rag_stats": {
+          "k": 8,
+          "hits": 8,
+          "sim_max": 0.7067053460422711,
+          "struct_hits": 0,
+          "latency_ms": 47006,
+          "bm25_only": false,
+          "use_reranker": true,
+          "use_bm25_with_vector": true,
+          "weights": {
+            "sim": 0.65,
+            "struct": 0.2,
+            "kw": 0.075,
+            "pin": 0.075
+          },
+          "signals": {
+            "sim": 0.7067053460422711,
+            "struct": 0.0,
+            "kw_signal": 0.0,
+            "pin_signal": 0.0,
+            "weak_ctx": false
+          },
+          "penalties": {
+            "weak_penalty": 0.2,
+            "weak_penalty_focus": 0.1
+          }
+        },
+        "reason": "signal RAG moyen",
+        "matched_special": null
+      },
+      "task": "qa",
+      "intent_scores": {
+        "qcm": 0.333,
+        "kholle": 0.3,
+        "exam_gen": 0.195,
+        "exercise_gen": 0.2,
+        "solve": 0.203,
+        "tutor": 0.176,
+        "exercise_correct": 0.186,
+        "exam_correct": 0.148,
+        "course_summary": 0.143,
+        "sheet_create": 0.175,
+        "sheet_review": 0.161,
+        "course_build": 0.2,
+        "course_explain": 0.244,
+        "formula": 0.2,
+        "theorem": 0.162,
+        "proof": 0.176,
+        "qa": 1.0
+      },
+      "safety": {
+        "math_only": true
+      },
+      "ts": 1762155869,
+      "top_meta": {
+        "chapter": null,
+        "block_kind": "remarque",
+        "block_id": "11.30",
+        "type": "méthode",
+        "page": null
+      }
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "ts": 1762155869179,
+  "task": "qa",
+  "runtime": {
+    "host": "http://localhost:11434",
+    "runtime_default": "hybrid",
+    "llm_primary": "deepseek-v3.1:671b-cloud",
+    "llm_fallback": "qwen2.5:7b-math",
+    "rewriter_enabled": true,
+    "rewriter_model": "glm-4.6:cloud"
+  },
+  "filters": {
+    "doc_type": null,
+    "chapter": null,
+    "block_kind": null,
+    "block_id": null
+  },
+  "follow_up": true,
+  "rewriter": {
+    "enabled": true,
+    "model": "glm-4.6:cloud",
+    "input": {
+      "last_q": "Explique le théoExplique le théorème des valeurs intermédiaires et donne un exemple.",
+      "new_q": "donne moi un exemple plus complexe",
+      "ctx": "(aucun)"
+    },
+    "prompt_preview": "Human: Tu reformules des questions courtes d'étudiants en requêtes auto-suffisantes pour la recherche de contexte.\nSi on te donne un CONTEXTE (chapitre, type de bloc, identifiant), intègre-le explicitement.\nGarde une longueur raisonnable et des mots-clés concrets. Pas de politesse.\n\n[DERNIÈRE QUESTION]\nExplique le théoExplique le théorème des valeurs intermédiaires et donne un exemple.\n\n[NOUVELLE QUESTION]\ndonne moi un exemple plus complexe\n\n[CONTEXTE]\n(aucun)\n\nConsigne:\n- Si la nouvelle question est une relance ou dépend du contexte, écris une requête condensée qui précise le chapitre et le bloc (s'ils sont fournis).\n- Sinon, renvoie simplement la nouvelle question telle quelle.\n- Sors uniquement la requête réécrite (une ligne).\n",
+    "latency_ms": 6729,
+    "output": "Exemple complexe du théorème des valeurs intermédiaires."
+  },
+  "rewritten_q": "Exemple complexe du théorème des valeurs intermédiaires.",
+  "hinted_q": "Exemple complexe du théorème des valeurs intermédiaires.",
+  "llm_calls": [
+    {
+      "step": "task:qa",
+      "model": "deepseek-v3.1:671b-cloud",
+      "fallback": false,
+      "latency_ms": 52109,
+      "prompt_preview": "Human: \nTu es un professeur de mathématiques pédagogue, rigoureux et clair.\nTu dois répondre en t’appuyant exclusivement sur le contexte ci-dessous.\n\n[Contexte du cours — extraits avec pages]\n[REMARQUE 11.30 - Page ?]\nRemarque 11.30 Plus généralement, on peut remplacer l’hypothèse H1 par f (a)f (b) É 0. Le théorème des valeurs intermédiaires est (comme le théorème de la limite monotone) un théorème qui permet de montrer l’existence d’objets de façon abstraite sans préciser leur valeur. On utilise pour cela une fonction auxiliaire bien choisie et on applique le TVI à cette fonction. Exemple 11.8 Soit f : [0,1] 7→[0,1] une fonction continue. Cette fonction admet au moins un point ﬁxe x0 ∈[0,1]. Déﬁnissons la fonction auxiliaire g : ½ [0,1] −→ [0,1] x 7−→ f (x)−x . D’après les théorèmes généraux, la fonction g est continue sur le segment [0,1]. Puisque la fonction est à valeurs dans [0,1], f (0) Ê 0 et f (1) É 1 d’où g(0) É 0 et g(1) Ê 0. D’après le théorème des valeurs intermédiaires, il existe x0 ∈[0,1] tel que g(x0) = 0, c’est à dire f (x0) = x0. Exemple 11.9 Soit P : R 7→R une fonction polynômiale de degré impair. Vériﬁons qu’elle s’annule au moins une fois.\n---\n[REMARQUE 11.30 - Page ?]\nRemarque 11.30 Plus généralement, on peut remplacer l’hypothèse H1 par f (a)f (b) É 0. Le théorème des valeurs intermédiaires est (comme le théorème de la limite monotone) un théorème qui permet de montrer l’existence d’objets de façon abstraite sans préciser leur valeur. On utilise pour cela une fonction auxiliaire bien choisie et on applique le TVI à cette fonction. Exemple 11.8 Soit f : [0,1] 7→[0,1] une fonction continue. Cette fonction admet au moins un point ﬁxe x0 ∈[0,1]. Déﬁnissons la fonction auxiliaire g : ½ [0,1] −→ [0,1] x 7−→ f (x)−x . D’après les théorèmes généraux, la fonction g est continue sur le segment [0,1]. Puisque la fonction est à valeurs dans [0,1], f (0) Ê 0 et f (1) É 1 d’où g(0) É 0 et g(1) Ê 0. D’après le théorème des valeurs intermédiaires, il existe x0 …",
+      "vars_keys": [
+        "context",
+        "question",
+        "topic",
+        "notion",
+        "level",
+        "chapters",
+        "duration",
+        "num_exercises",
+        "total_points",
+        "sheet_text",
+        "query",
+        "statement",
+        "student_answer",
+        "points",
+        "num_questions",
+        "source",
+        "difficulty",
+        "with_solutions"
+      ]
+    }
+  ]
+}
