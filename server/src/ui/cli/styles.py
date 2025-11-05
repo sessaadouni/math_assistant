@@ -62,6 +62,25 @@ class CLIFormatter:
     @staticmethod
     def error(text: str):
         console.print(Panel(f"[error]{text}[/]", title="❌ Erreur", border_style="red"))
+    
+    @staticmethod
+    def processing_step(step: str, detail: str = "", status: str = "⏳"):
+        """
+        Display a processing step in real-time.
+        
+        Parameters
+        ----------
+        step : str
+            Step name (e.g., "Router", "RAG", "LLM")
+        detail : str
+            Optional detail about the step
+        status : str
+            Status icon: ⏳ (in progress), ✅ (done), ⚠️ (warning), ❌ (error)
+        """
+        if detail:
+            console.print(f"{status} [cyan]{step}[/]: [dim]{detail}[/]")
+        else:
+            console.print(f"{status} [cyan]{step}[/]")
 
     # --- Aide --------------------------------------------------------------
     @staticmethod
@@ -754,6 +773,138 @@ et des explications complètes.
 Toutes les commandes du système disposent d'un manuel.
 Tape [command]/help[/] pour voir la liste complète.
 """,
+            "new-chat": """
+[title]/new-chat[/]
+
+[subtitle]Description:[/]
+Démarre une nouvelle conversation en réinitialisant l'historique et les contextes.
+Peut optionnellement nommer le chat pour une meilleure organisation.
+
+[subtitle]Usage:[/]
+  [command]/new-chat[/]              → Nouveau chat (ID généré automatiquement)
+  [command]/new-chat[/] <nom>        → Nouveau chat avec nom personnalisé
+
+[subtitle]Effets:[/]
+  • Réinitialise l'historique de conversation
+  • Active auto-link (liaison automatique au contexte)
+  • Active auto-pin pour le prochain contexte
+  • Désactive le mode tuteur
+  • Conserve les logs (si activés)
+
+[subtitle]Exemples:[/]
+  [command]/new-chat[/]
+  [command]/new-chat chapitre3[/]
+  [command]/new-chat révisions-examen[/]
+
+[subtitle]Voir aussi:[/]
+  • [command]/forget[/] - Oublier les liens du contexte actuel
+  • [command]/log save[/] - Sauvegarder avant de changer de chat
+""",
+            "pin": """
+[title]/pin[/]
+
+[subtitle]Description:[/]
+Épingle le contexte actuel pour le réutiliser dans les prochaines questions.
+Le contexte épinglé reste actif jusqu'à désépinglage explicite.
+
+[subtitle]Usage:[/]
+  [command]/pin[/]
+
+[subtitle]Effets:[/]
+  • Mémorise les documents du dernier contexte
+  • Réutilise ce contexte pour les questions suivantes
+  • Biaise la recherche vers les documents épinglés
+  • Visible dans [command]/show[/]
+
+[subtitle]Cas d'usage:[/]
+Quand plusieurs questions portent sur les mêmes théorèmes/exercices,
+épingler permet de maintenir la cohérence contextuelle.
+
+[subtitle]Exemples:[/]
+  💬 C'est quoi le théorème de Rolle ?
+  [... réponse avec sources ...]
+  [command]/pin[/]
+  💬 Donne un exemple d'application
+  [... utilisera le même contexte ...]
+  💬 Et les conditions ?
+  [... toujours le même contexte ...]
+  [command]/unpin[/]
+
+[subtitle]Voir aussi:[/]
+  • [command]/unpin[/] - Désépingler le contexte
+  • [command]/show[/] - Voir si un contexte est épinglé
+""",
+            "unpin": """
+[title]/unpin[/]
+
+[subtitle]Description:[/]
+Désépingle le contexte mémorisé pour revenir à une recherche libre.
+
+[subtitle]Usage:[/]
+  [command]/unpin[/]
+
+[subtitle]Effet:[/]
+Supprime le contexte épinglé et permet une nouvelle recherche sans biais.
+
+[subtitle]Voir aussi:[/]
+  • [command]/pin[/] - Épingler un contexte
+""",
+            "link": """
+[title]/link[/]
+
+[subtitle]Description:[/]
+Active ou désactive l'auto-link (liaison automatique au contexte précédent).
+Quand activé, chaque question réutilise automatiquement le contexte de la question précédente.
+
+[subtitle]Usage:[/]
+  [command]/link on[/]     → Active l'auto-link
+  [command]/link off[/]    → Désactive l'auto-link
+
+[subtitle]Effets:[/]
+  • [value]on[/] - Les questions sont liées automatiquement (mode conversation)
+  • [value]off[/] - Chaque question est indépendante (mode questions isolées)
+
+[subtitle]Différence avec /pin:[/]
+  • [command]/link[/] - Liaison automatique question après question (dynamique)
+  • [command]/pin[/] - Épinglage manuel d'un contexte spécifique (statique)
+
+[subtitle]Exemples:[/]
+  [command]/link on[/]      → Active (par défaut au démarrage)
+  [command]/link off[/]     → Questions indépendantes
+
+[subtitle]Voir aussi:[/]
+  • [command]/pin[/], [command]/unpin[/] - Contrôle manuel du contexte
+  • [command]/forget[/] - Oublier les liens sans désactiver l'auto-link
+""",
+            "forget": """
+[title]/forget[/]
+
+[subtitle]Description:[/]
+Oublie les liens du contexte actuel (dernière question, derniers documents)
+sans désactiver l'auto-link. Utile pour "recommencer à zéro" sans changer de chat.
+
+[subtitle]Usage:[/]
+  [command]/forget[/]
+
+[subtitle]Effets:[/]
+  • Efface la dernière question mémorisée
+  • Efface les derniers documents contextuels
+  • Conserve l'historique du chat
+  • Ne désactive PAS l'auto-link (contrairement à [command]/link off[/])
+
+[subtitle]Cas d'usage:[/]
+Quand tu veux changer de sujet complètement sans créer un nouveau chat.
+
+[subtitle]Exemples:[/]
+  💬 Questions sur les séries...
+  [command]/forget[/]
+  💬 Questions sur les intégrales (contexte vierge)
+
+[subtitle]Voir aussi:[/]
+  • [command]/new-chat[/] - Recommencer avec un nouveau chat
+  • [command]/unpin[/] - Désépingler le contexte (plus ciblé)
+  • [command]/link off[/] - Désactiver complètement l'auto-link
+""",
         }
         
         # Normalisation de la commande
@@ -779,23 +930,81 @@ Tape [command]/help[/] pour voir la liste complète.
         console.print("\n" + "─" * 70)
 
     @staticmethod
-    def prompt(text: str = "Ta question", tutor_mode: bool = False, tutor_strict: bool = False, tutor_explain: bool = False) -> str:
+    def prompt(
+        text: str = "Ta question", 
+        tutor_mode: bool = False, 
+        tutor_strict: bool = False, 
+        tutor_explain: bool = False,
+        allow_oot: bool = True,
+        router_mode: str = "auto",
+        backend: str = "local"
+    ) -> str:
+        """
+        Display prompt with system status badges and separate input line.
+        
+        Parameters
+        ----------
+        text : str
+            Prompt text
+        tutor_mode : bool
+            Whether tutor mode is enabled
+        tutor_strict : bool
+            Whether strict tutor mode (vs smart)
+        tutor_explain : bool
+            Whether explain mode is enabled
+        allow_oot : bool
+            Whether out-of-topic is allowed
+        router_mode : str
+            Router mode: auto/rag/llm/hybrid
+        backend : str
+            Backend mode: local/cloud/hybrid
+        """
+        # Build status badges (like a real system)
         badges = []
         
+        # Router badge
+        if router_mode == "auto":
+            badges.append("[dim][[/][info]🧭 AUTO[/][dim]][/]")
+        elif router_mode == "rag":
+            badges.append("[dim][[/][value]🧭 RAG[/][dim]][/]")
+        elif router_mode == "llm":
+            badges.append("[dim][[/][warning]🧭 LLM[/][dim]][/]")
+        else:
+            badges.append(f"[dim][[/][highlight]🧭 {router_mode.upper()}[/][dim]][/]")
+        
+        # OOT badge
+        if allow_oot:
+            badges.append("[dim][[/][value]� OOT[/][dim]][/]")
+        else:
+            badges.append("[dim][[/][dim]🌍 OOT[/dim][dim]][/]")
+        
+        # Backend badge
+        if backend == "local":
+            badges.append("[dim][[/][info]🖥️  LOCAL[/][dim]][/]")
+        elif backend == "cloud":
+            badges.append("[dim][[/][warning]☁️  CLOUD[/][dim]][/]")
+        else:
+            badges.append("[dim][[/][highlight]⚡ HYBRID[/][dim]][/]")
+        
+        # Tutor mode badges
         if tutor_mode:
             if tutor_strict:
-                badges.append("[dim][[/][value]🎓 TUTEUR[/][dim]][/] [dim][[/][warning]strict[/][dim]][/]")
+                badges.append("[dim][[/][value]🎓 STRICT[/][dim]][/]")
             else:
-                badges.append("[dim][[/][value]🎓 TUTEUR[/][dim]][/] [dim][[/][info]smart[/][dim]][/]")
+                badges.append("[dim][[/][value]🎓 SMART[/][dim]][/]")
         
         if tutor_explain:
             badges.append("[dim][[/][value]🧠 EXPLAIN[/][dim]][/]")
         
-        if badges:
-            badge_str = " ".join(badges) + " "
-            return console.input(f"\n{badge_str}[prompt]💬 {text}[/]: ").strip()
+        # Display status line with badges (non-editable)
+        badge_str = " ".join(badges)
+        console.print(f"\n{badge_str}")
+        console.print(f"[prompt]💬 {text}[/]:")
         
-        return console.input(f"\n[prompt]💬 {text}[/]: ").strip()
+        # Input line - use plain input() to avoid backspace eating the prompt
+        # KeyboardInterrupt (Ctrl+C) should propagate to allow clean exit
+        user_input = input("> ")
+        return user_input.strip()
 
     @staticmethod
     def sources_table(docs: list):

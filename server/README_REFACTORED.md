@@ -1,8 +1,41 @@
-# 🎓 Assistant Mathématiques RAG v3.1 - Refactoré
+# 🎓 Assistant Mathématiques RAG v3.1 - Architecture SOLID
 
-Système RAG (Retrieval-Augmented Generation) pour l'assistance en mathématiques, avec architecture modulaire, CLI moderne et API FastAPI.
+Système RAG (Retrieval-Augmented Generation) pour l'assistance en mathématiques, avec **architecture SOLID complète**, DI Container, et Facade Pattern.
 
-## ✨ Nouveautés v3.1
+## 🚀 Démarrage rapide (Phase 4 - NOUVEAU)
+
+```python
+from src.application.facades import get_assistant
+
+# Le DI Container fait tout automatiquement !
+assistant = get_assistant()
+
+# Poser une question
+result = assistant.ask("C'est quoi une série de Fourier ?", chapter="8")
+
+# Générer des exercices
+result = assistant.generate_exercises("intégration par parties", count=5)
+
+# Créer un examen
+result = assistant.generate_exam(chapters="5,6,7", duration="3h")
+```
+
+📖 **[Guide de référence rapide](QUICK_REFERENCE.md)** | 📚 **[Phase 4 complète](PHASE4_COMPLETE.md)**
+
+---
+
+## ✨ Nouveautés v3.1 (Phase 4 - Architecture SOLID)
+
+### Phase 4 : COMPLETE ✅ (8/8 tests passent)
+
+- ✅ **DI Container** : Gestion automatique des dépendances (retriever, llm, router, prompts, 16 use cases)
+- ✅ **16 Use Cases** : Toutes les fonctionnalités organisées en use cases (Q&A, Course, Sheets, Exercises, Exams, Utilities)
+- ✅ **Facade Pattern** : Point d'entrée unique via `MathAssistantFacade`
+- ✅ **Architecture SOLID** : Domain-Driven Design + tous les principes SOLID
+- ✅ **Singletons automatiques** : Objets lourds créés UNE SEULE FOIS
+- ✅ **Testabilité** : 8 tests fast (100% pass rate)
+
+### Phase 0-3 : Architecture de base
 
 - ✅ **Architecture modulaire** : Code organisé en modules réutilisables
 - ✅ **Configuration centralisée** : Gestion propre via dataclasses et `.env`
@@ -15,21 +48,71 @@ Système RAG (Retrieval-Augmented Generation) pour l'assistance en mathématique
 
 ---
 
-## 📁 Structure du projet
+## 📁 Structure du projet (Phase 4 - SOLID Architecture)
 
 ```
 .
 ├── README_REFACTORED.md          # Ce fichier
+├── PHASE4_COMPLETE.md            # 🆕 Documentation Phase 4 complète
+├── QUICK_REFERENCE.md            # 🆕 Guide de référence rapide
+├── example_usage.py              # 🆕 Exemple d'utilisation
+├── test_solid_phase4_fast.py     # 🆕 Tests Phase 4 (8/8 pass)
 ├── .env.example                  # Configuration exemple
 ├── pyproject.toml                # Dépendances (uv/pip)
 ├── server.py                     # Serveur FastAPI
 │
-├── src/                          # Code source refactorisé
-│   ├── core/                     # Cœur du système
+├── src/                          # Code source SOLID
+│   │
+│   ├── domain/                   # 🆕 DOMAIN LAYER (Phase 1)
+│   │   ├── entities/             # Entités métier
+│   │   │   ├── query_context.py  # QueryContext (query, filters, session)
+│   │   │   └── session_context.py # SessionContext (chat history)
+│   │   ├── interfaces/           # Interfaces (abstractions)
+│   │   │   ├── llm.py            # ILLMProvider (LLM abstraction)
+│   │   │   ├── retriever.py      # IRetriever (retrieval abstraction)
+│   │   │   └── router.py         # IRouter (routing abstraction)
+│   │   └── value_objects/        # Value Objects (immutables)
+│   │       ├── document.py       # Document (source data)
+│   │       └── filters.py        # Filters (chapter, block_types)
+│   │
+│   ├── application/              # 🆕 APPLICATION LAYER (Phase 2-4)
+│   │   ├── interfaces/           # Use Case interfaces
+│   │   │   └── use_case.py       # IUseCase[TRequest, TResponse]
+│   │   ├── services/             # Services applicatifs
+│   │   │   ├── prompt_repository.py  # PromptRepository (17 prompts)
+│   │   │   └── query_rewriter.py     # QueryRewriter (reformulation)
+│   │   ├── use_cases/            # 🆕 16 USE CASES (Phase 4)
+│   │   │   ├── answer_question.py      # Q&A
+│   │   │   ├── explain_course.py       # Course explain
+│   │   │   ├── build_course.py         # Course build
+│   │   │   ├── summarize_course.py     # Course summary
+│   │   │   ├── generate_exercise.py    # Exercise generation
+│   │   │   ├── solve_exercise.py       # Exercise solution
+│   │   │   ├── correct_exercise.py     # Exercise correction
+│   │   │   ├── explain_theorem.py      # Theorem explanation
+│   │   │   ├── explain_formula.py      # Formula explanation
+│   │   │   ├── prove_statement.py      # Proof generation
+│   │   │   ├── sheets_and_exercises.py # Sheets (4 use cases)
+│   │   │   └── exams_and_assessments.py # Exams (4 use cases)
+│   │   └── facades/              # 🆕 FACADE PATTERN (Phase 4)
+│   │       └── math_assistant_facade.py # Point d'entrée unique
+│   │
+│   ├── infrastructure/           # 🆕 INFRASTRUCTURE LAYER (Phase 3)
+│   │   ├── llm/                  # LLM implementations
+│   │   │   └── fallback_llm_provider.py # Fallback LLM
+│   │   ├── retrieval/            # Retrieval implementations
+│   │   │   └── hybrid_retriever.py      # BM25 + Vector + Reranker
+│   │   └── routing/              # Routing implementations
+│   │       └── intent_detection_router.py # Intent router
+│   │
+│   ├── config/                   # 🆕 CONFIGURATION (Phase 3)
+│   │   └── di_container.py       # DI Container (factory methods)
+│   │
+│   ├── core/                     # Cœur du système (legacy)
 │   │   ├── config.py             # Configuration centralisée
 │   │   └── rag_engine.py         # Moteur RAG
 │   │
-│   ├── assistant/                # Logique métier
+│   ├── assistant/                # Logique métier (legacy)
 │   │   ├── assistant.py          # Assistant principal
 │   │   └── prompts.py            # Templates de prompts
 │   │
@@ -63,13 +146,52 @@ Système RAG (Retrieval-Augmented Generation) pour l'assistance en mathématique
     └── livre_2011.pdf
 ```
 
+### 🏗️ Architecture en couches (SOLID)
+
+```
+┌─────────────────────────────────────────┐
+│  UI Layer (CLI, GUI, FastAPI)          │  ← Utilisateurs
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│  Application Layer (Use Cases + Facade) │  ← Logique métier
+│  • 16 Use Cases                         │
+│  • MathAssistantFacade (point unique)   │
+│  • Services (PromptRepository, etc.)    │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│  Domain Layer (Entities + Interfaces)   │  ← Abstractions pures
+│  • QueryContext, SessionContext         │
+│  • IRetriever, ILLMProvider, IRouter    │
+│  • Document, Filters                    │
+└──────────────┬──────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────┐
+│  Infrastructure Layer (Implémentations) │  ← Détails techniques
+│  • HybridRetriever (BM25+Vector)        │
+│  • FallbackLLMProvider (Ollama)         │
+│  • IntentDetectionRouter                │
+└─────────────────────────────────────────┘
+               ▲
+               │
+┌──────────────┴──────────────────────────┐
+│  DI Container (di_container.py)         │  ← Gestion dépendances
+│  • Singletons automatiques              │
+│  • Factory methods                      │
+└─────────────────────────────────────────┘
+```
+
 ---
 
 ## 🚀 Installation
 
 ### Prérequis
 
-- Python 3.10+
+- Python 3.12+ (pour dataclasses et type hints avancés)
 - Ollama (local ou compte cloud)
 - [uv](https://github.com/astral-sh/uv) (recommandé) ou pip
 
@@ -100,7 +222,52 @@ python -m src.core.rag_engine
 
 ## 💻 Utilisation
 
-### CLI
+### 🆕 Phase 4 : Nouvelle API avec Facade Pattern (RECOMMANDÉ)
+
+```python
+from src.application.facades import get_assistant
+
+# Initialisation automatique via DI Container
+assistant = get_assistant()
+
+# Q&A simple
+result = assistant.ask("C'est quoi une série de Fourier ?", chapter="8")
+print(result["answer"])
+
+# Génération d'exercices
+result = assistant.generate_exercises(
+    topic="intégration par parties",
+    count=5,
+    difficulty="moyen",
+    chapter="6"
+)
+
+# Génération d'examen
+result = assistant.generate_exam(
+    chapters="5,6,7",
+    duration="3h",
+    total_points=100,
+    difficulty="difficile"
+)
+
+# Explication de formule
+result = assistant.explain_formula("formule de Stokes", chapter="9")
+
+# Preuve de théorème
+result = assistant.prove_statement("théorème de Cauchy-Lipschitz", chapter="14")
+
+# Créer une fiche de révision
+result = assistant.create_sheet("séries de Fourier", chapter="8")
+
+# QCM
+result = assistant.generate_qcm("séries entières", num_questions=10, chapter="12")
+```
+
+📖 **[Guide de référence complet](QUICK_REFERENCE.md)** avec toutes les 17 méthodes disponibles.
+
+---
+
+### CLI (Legacy - toujours supporté)
 
 ```bash
 # Lancer le CLI

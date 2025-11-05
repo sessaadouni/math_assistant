@@ -535,10 +535,8 @@ class RAGEngine:
                 emb = OllamaEmbeddings(model=name, **base_kwargs)
                 # Ping simple pour forcer l'initialisation (optionnel / robuste)
                 _ = emb.embed_query("ping")
-                if RICH_OK:
-                    console.print(f"✅ Embeddings: [bold]{name}[/]")
-                else:
-                    print(f"✅ Embeddings: {name}")
+                # Note: Ne plus afficher "✅ Embeddings:" ici car on affiche
+                # maintenant les étapes en temps réel pendant le traitement
                 return emb
             except Exception as e:
                 tried.append((name, str(e)))
@@ -610,9 +608,8 @@ class RAGEngine:
 
             if RICH_OK:
                 console.print(Panel.fit("[bold green]✅ Indexation terminée[/]"))
-        else:
-            msg = f"🔎 Base vectorielle chargée ({vector_store._collection.count()} documents)"
-            console.print(msg) if RICH_OK else print(msg)
+        # Note: Ne plus afficher "Base vectorielle chargée" ici car on affiche
+        # maintenant les étapes en temps réel pendant le traitement des questions
 
         return vector_store
 

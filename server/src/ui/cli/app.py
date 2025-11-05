@@ -37,32 +37,50 @@ class MathCLI:
         # Cache du dernier passport et du dernier debug record
         self._last_passport: Optional[dict] = None
         self._last_debug: Optional[dict] = None
+    
+    def _sync_state_to_memory(self):
+        """Synchronize CLI state to assistant.memory for comprehensive /show display."""
+        # Sync OOT
+        self.assistant.memory.set_oot_allow(self.allow_oot)
+        
+        # Sync tutor mode
+        if self.tutor_mode:
+            mode = "strict" if self.tutor_strict else "smart"
+            self.assistant.memory.set_tutor_mode(mode)
+        else:
+            self.assistant.memory.set_tutor_mode(None)
+        
+        # Sync auto-link
+        self.assistant.memory.set_auto_link(self.auto_link)
+        
+        # Store backend (for display purposes)
+        self.assistant.memory.state["backend"] = rag_config.runtime_default_mode
 
     def run(self):
         """Boucle principale"""
         self.assistant.ensure_ready()
 
-        # Bandeau d’accueil
+        # Bandeau d'accueil simplifié
         self.formatter.title("🎓 ASSISTANT MATHÉMATIQUES – RAG v3.1")
-        self.formatter.backend_status({
-            "runtime": rag_config.runtime_default_mode,
-            "ollama_host": rag_config.ollama_host,
-            "llm_primary": rag_config.llm_model,
-            "llm_fallback": rag_config.llm_local_fallback,
-            "rewrite_model": rag_config.rewrite_model,
-            "embed_primary": rag_config.embed_model_primary,
-            "embed_alt": rag_config.embed_model_alt,
-            "reranker": rag_config.reranker_model if rag_config.use_reranker else "(désactivé)",
-        })
+        # Afficher seulement l'info essentielle au démarrage
+        console.print(f"[cyan]⚡ Backend:[/] [bold]{rag_config.runtime_default_mode}[/]  |  [cyan]🤖 LLM:[/] [bold]{rag_config.llm_model}[/]")
+        console.print(f"[dim]💡 Utilise /show pour voir tous les paramètres, /help pour les commandes[/]\n")
         self.formatter.command_help()
 
         while True:
             try:
                 self.formatter.separator()
+                
+                # Get router mode
+                router_mode = self.assistant.memory.get_route_override() or "auto"
+                
                 question = self.formatter.prompt(
                     tutor_mode=self.tutor_mode,
                     tutor_strict=self.tutor_strict,
-                    tutor_explain=self.tutor_explain
+                    tutor_explain=self.tutor_explain,
+                    allow_oot=self.allow_oot,
+                    router_mode=router_mode,
+                    backend=rag_config.runtime_default_mode
                 )
 
                 if not question:
@@ -114,6 +132,8 @@ class MathCLI:
 
         # ----- Alias /show -> /scope show -----
         if cmd.lower() == "/show":
+            # Synchronize CLI state with assistant.memory before showing
+            self._sync_state_to_memory()
             self.formatter.scope_status(self.assistant.memory.scope_show())
             return True
 
@@ -236,6 +256,8 @@ class MathCLI:
             parts = cmd.split()
             if len(parts) == 2 and parts[1].lower() in {"on", "off"}:
                 self.allow_oot = (parts[1].lower() == "on")
+                # Synchronize with assistant.memory
+                self.assistant.memory.set_oot_allow(self.allow_oot)
                 self.formatter.success(f"Hors programme: {'autorisé' if self.allow_oot else 'désactivé (RAG strict)'}")
             else:
                 self.formatter.warning("Usage: /oot on|off")
@@ -279,17 +301,10 @@ class MathCLI:
                 self.formatter.warning("Usage: /backend <local|cloud|hybrid>  (ou '/backend show')")
                 return True
 
-            # Essaye d'appeler une méthode de swap runtime sur l'assistant si dispo
-            swapper = getattr(self.assistant, "swap_runtime", None)
-            if callable(swapper):
-                ok, msg, snapshot = swapper(mode)
-                if ok:
-                    self.formatter.success(f"Backend: {mode} • {msg}")
-                    self.formatter.backend_status(snapshot)
-                else:
-                    self.formatter.error(f"Échec de bascule backend: {msg}")
-            else:
-                self.formatter.warning("Le runtime ne peut pas être changé à chaud dans cette version. Redémarre l'app après avoir modifié RUNTIME_MODE dans .env.")
+            # Change backend mode directly
+            rag_config.runtime_default_mode = mode
+            self.formatter.success(f"✅ Backend changé: {mode.upper()}")
+            self.formatter.info(f"⚠️  Note: Certains modèles peuvent nécessiter un redémarrage pour être rechargés.")
             return True
 
         # ----- Afficher/Sauver le dernier passport de routage -----
@@ -338,7 +353,7 @@ class MathCLI:
             return True
 
         # ----- Pin / Unpin -----
-        if cmd == "/pin":
+        if cmd == "/pin" or cmd.startswith("/pin "):
             meta = self.assistant.memory.best_context_meta()
             if not meta:
                 meta = self.assistant.memory.state.get("last_top_meta") or {"info": "(aucun contexte)"}
@@ -346,7 +361,7 @@ class MathCLI:
             self.formatter.success(f"Contexte épinglé: {meta}")
             return True
 
-        if cmd == "/unpin":
+        if cmd == "/unpin" or cmd.startswith("/unpin "):
             self.assistant.memory.reset(full=False)
             self.formatter.success("Contexte désépinglé et mémoire courte réinitialisée")
             return True
@@ -361,7 +376,10 @@ class MathCLI:
             return True
 
         # ----- New chat -----
-        if cmd == "/new-chat":
+        if cmd.startswith("/new-chat"):
+            parts = cmd.split(maxsplit=1)
+            chat_name = parts[1].strip() if len(parts) > 1 else None
+            
             self.assistant.new_session(reset_scope=True, preserve_logs=True)
             self.chat_id = self.assistant.memory.chat_id
             self.auto_link = True
@@ -371,8 +389,10 @@ class MathCLI:
             self.tutor_explain = False
             self._last_passport = None
             self._last_debug = None
+            
+            chat_display = f"[cyan]{chat_name}[/]" if chat_name else self.chat_id
             self.formatter.success(
-                f"Nouveau chat: {self.chat_id} | Auto-link activé | Auto-pin au prochain contexte | Mode tuteur désactivé"
+                f"Nouveau chat: {chat_display} | Auto-link activé | Auto-pin au prochain contexte | Mode tuteur désactivé"
             )
             return True
 
@@ -436,9 +456,11 @@ class MathCLI:
                 # Déterminer le type (strict ou smart)
                 if len(parts) >= 3 and parts[2].lower() == "strict":
                     self.tutor_strict = True
+                    self.assistant.memory.set_tutor_mode("strict")
                     self.formatter.success("🎓 Mode tuteur activé (strict) - Toutes les réponses en guidage pédagogique")
                 else:
                     self.tutor_strict = False
+                    self.assistant.memory.set_tutor_mode("smart")
                     self.formatter.success("🎓 Mode tuteur activé (smart) - Détection auto : exercices → guidage, théorie → normal")
                 return True
             
@@ -446,13 +468,15 @@ class MathCLI:
             if arg == "off":
                 self.tutor_mode = False
                 self.tutor_strict = False
+                self.assistant.memory.set_tutor_mode(None)
                 self.formatter.success("Mode tuteur désactivé")
                 return True
             
-            # /tutor explain [on|off]
+            # /tutor explain [on|off|<question>]
             if arg == "explain":
                 if len(parts) >= 3:
                     sub_arg = parts[2].lower()
+                    # Check if it's on/off command
                     if sub_arg == "on":
                         self.tutor_explain = True
                         self.formatter.success("🧠 Mode explain activé - Guidage socratique pour la compréhension de cours/théorèmes")
@@ -461,17 +485,17 @@ class MathCLI:
                         self.tutor_explain = False
                         self.formatter.success("Mode explain désactivé")
                         return True
-                
-                # /tutor explain <question> → mode ponctuel explanation
-                st = cmd.split(" ", 2)[2].strip() if len(parts) >= 3 else ""
-                if st:
-                    payload = self.assistant.run_task("tutor", st, with_solutions=False)
-                    self._capture_backend_debug(payload)
-                    self.formatter.info("🧠 Mode explain - Guidage socratique")
-                    self.formatter.sources_table(payload["docs"])
-                    self.formatter.answer(payload["answer"])
-                    return True
+                    else:
+                        # /tutor explain <question> → mode ponctuel explanation
+                        st = cmd.split(" ", 2)[2].strip()
+                        payload = self.assistant.run_task("tutor", st, with_solutions=False)
+                        self._capture_backend_debug(payload)
+                        self.formatter.info("🧠 Mode explain - Guidage socratique")
+                        self.formatter.sources_table(payload["docs"])
+                        self.formatter.answer(payload["answer"])
+                        return True
                 else:
+                    # /tutor explain sans argument → afficher usage
                     self.formatter.warning("Usage: /tutor explain on|off ou /tutor explain <question>")
                     return True
             
@@ -680,8 +704,11 @@ class MathCLI:
                 self.formatter.warning("Format: /commande <question>")
                 return
 
-        # Recherche et réponse
-        self.formatter.searching()
+        # Ne pas afficher "Recherche en cours" ici, on va afficher les étapes en temps réel
+        
+        # Callback pour afficher les étapes en temps réel
+        def progress_callback(step: str, detail: str = ""):
+            self.formatter.processing_step(step, detail)
 
         # Si mode tuteur ou explain activé, intercepter selon le mode
         if self.tutor_mode or self.tutor_explain:
@@ -783,6 +810,7 @@ class MathCLI:
                     debug=self.debug,
                     auto_pin_next=self.auto_pin_next,
                     allow_oot=self.allow_oot,
+                    progress_callback=progress_callback,
                 )
                 self.auto_pin_next = False
                 self._capture_backend_debug(payload)
@@ -795,6 +823,7 @@ class MathCLI:
                 debug=self.debug,
                 auto_pin_next=self.auto_pin_next,
                 allow_oot=self.allow_oot,
+                progress_callback=progress_callback,
             )
             self.auto_pin_next = False
             self._capture_backend_debug(payload)
