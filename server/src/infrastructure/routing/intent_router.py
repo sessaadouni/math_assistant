@@ -111,9 +111,16 @@ class IntentRouter(IRouter):
             # Get last 2 exchanges for context (avoid too much token usage)
             recent_history = session_context.history[-2:]
             context_parts = []
-            for prev_q, prev_a in recent_history:
-                # Only include question (answer is too long)
-                context_parts.append(f"Question précédente: {prev_q}")
+            for exchange in recent_history:
+                if isinstance(exchange, dict):
+                    prev_q = exchange.get("question")
+                elif isinstance(exchange, (list, tuple)) and exchange:
+                    prev_q = exchange[0]
+                else:
+                    prev_q = None
+                if prev_q:
+                    # Only include question (answer is too long)
+                    context_parts.append(f"Question précédente: {prev_q}")
             
             if context_parts:
                 history_context = "\n".join(context_parts)
@@ -307,7 +314,7 @@ class IntentRouter(IRouter):
         # Quick retrieval
         t0 = time.time()
         try:
-            docs = self._retriever.retrieve(query_normalized, filters, top_k=k)
+            docs = self._retriever.retrieve(query_normalized, filters, k=k)
         except Exception as e:
             latency_ms = int((time.time() - t0) * 1000)
             return self._error_signal(k, latency_ms, str(e))

@@ -333,6 +333,11 @@ class IntentDetector:
             r"\b(?:par|pour)\s+rapport\s+[aà]\s+(?:ca|cela)\b",  # "par rapport à ça"
             r"\bplus\s+sur\s+(?:ca|cela|ce\s+sujet)\b",  # "plus sur ça"
             r"\bapprofondir\s+(?:ca|cela|ce\s+sujet)\b",  # "approfondir ça"
+            r"\b(d[' ]?autres?|autres?)\s+(?:exos?|exercices?|questions?|exemples?)\b",  # "d'autres exos"
+            r"\bencore\s+(?:des?\s+)?(?:exos?|exercices?|questions?|exemples?)\b",       # "encore des exos"
+            r"\b(ajoute|rajoute|propose)\s+(?:moi\s+)?(?:d[' ]?)?autres?\b",             # "rajoute moi d'autres"
+            r"\bcontinue(?:\s+(?:sur|avec))?\b",                                        # "continue (sur/avec)"
+            r"\bplus\s+d[' ]?(?:exos?|exercices?|détails?)\b",                          # "plus d'exos"
         )
         
         return any(re.search(pattern, normalized) for pattern in anaphoric_patterns)

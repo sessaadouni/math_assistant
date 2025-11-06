@@ -14,6 +14,32 @@ Si vous débutez, commencez par ces fichiers dans cet ordre :
 
 ---
 
+## 🆕 Nouveautés (2025-11-06) - Prompts de Cours Améliorés
+
+### Documentation
+
+| Fichier | Description | Audience | Temps lecture |
+|---------|-------------|----------|---------------|
+| **[QUICKSTART_COURS.md](QUICKSTART_COURS.md)** | Guide rapide nouveaux prompts de cours | Développeur | 5 min |
+| **[COURSE_PROMPTS_IMPROVEMENT.md](COURSE_PROMPTS_IMPROVEMENT.md)** | Documentation complète amélioration | Architecte | 15 min |
+
+### Scripts de démonstration
+
+| Fichier | Description | Usage |
+|---------|-------------|-------|
+| **demo_course_comparison.py** | Comparaison mini-cours vs cours complet | `python3 demo_course_comparison.py` |
+| **inspect_prompts.py** | Inspection des templates de prompts | `python3 inspect_prompts.py` |
+| **test_course_prompts.py** | Tests unitaires des prompts | `python3 test_course_prompts.py` |
+
+### Points clés
+
+- ✅ **Séparation claire** : `explain_course` (mini-cours 10-15min) vs `build_course` (cours exhaustif 30-45min)
+- ✅ **Structure enrichie** inspirée ChatGPT-5 thinking (double piste CPGE + Ingénieur)
+- ✅ **9 sections** pour cours complet : intro, définitions, théorèmes, méthodes, exemples, exercices, formules, références, révision
+- ✅ **Rétrocompatibilité totale** : pas de changement d'API, fonctionne immédiatement
+
+---
+
 ## 📖 Documentation par catégorie
 
 ### 🚀 Utilisation
@@ -21,6 +47,7 @@ Si vous débutez, commencez par ces fichiers dans cet ordre :
 | Fichier | Description | Audience | Temps lecture |
 |---------|-------------|----------|---------------|
 | **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** | Guide de référence API avec tous les exemples | Développeur | 5 min |
+| **[QUICKSTART_COURS.md](QUICKSTART_COURS.md)** | Guide rapide prompts de cours | Développeur | 5 min |
 | **[example_usage.py](example_usage.py)** | Script démonstration de l'architecture | Développeur | Exécution < 1 min |
 | **[MIGRATION_TO_FACADE.md](MIGRATION_TO_FACADE.md)** | Guide migration ancien code → nouveau | Développeur | 10 min |
 

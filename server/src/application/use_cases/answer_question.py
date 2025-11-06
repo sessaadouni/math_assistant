@@ -114,12 +114,20 @@ class AnswerQuestionUseCase:
             # Add conversation history to help LLM understand the reference
             if session_context and session_context.history:
                 # Get last exchange for context
-                last_q, last_a = session_context.history[-1]
-                # Create enriched question with context
-                enriched_question = (
-                    f"[Contexte: L'utilisateur a précédemment demandé \"{last_q}\"]\n\n"
-                    f"Question actuelle: {question_text}"
-                )
+                last_exchange = session_context.history[-1]
+                if isinstance(last_exchange, dict):
+                    last_q = last_exchange.get("question")
+                elif isinstance(last_exchange, (list, tuple)) and last_exchange:
+                    last_q = last_exchange[0]
+                else:
+                    last_q = None
+
+                if last_q:
+                    # Create enriched question with context
+                    enriched_question = (
+                        f"[Contexte: L'utilisateur a précédemment demandé \"{last_q}\"]\n\n"
+                        f"Question actuelle: {question_text}"
+                    )
         
         # Override router decision if force_router_mode is set
         if force_router_mode:

@@ -35,44 +35,147 @@ Réponse :
 
 # ============ Cours complet (construction) ============
 COURSE_BUILD_PROMPT = ChatPromptTemplate.from_template("""
-Tu écris un mini-cours autonome et rigoureux sur : "{notion}"
+Tu écris un COURS COMPLET et rigoureux sur : "{notion}"
 Niveau : {level}.
 
 [Contexte — extraits du cours officiel]
 {context}
 
-Structure :
-1) Introduction / plan
-2) Définitions + notations
-3) Propriétés / théorèmes (conditions d’application)
-4) Méthodes / algorithmes de résolution
-5) Exemples canoniques + contre-exemples
-6) Exercices d’application (énoncé + correction concise)
-7) Formules clés en $$…$$
-8) Références [p.X]
+IMPORTANT : Ce n'est PAS un mini-cours, mais un cours EXHAUSTIF (30-45min de lecture) avec **double piste pédagogique** :
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🔬 **Piste CPGE-preuve** : Définitions ε-δ, énoncés précis, esquisses de preuves
+⚙️  **Piste Appli-ingé** : Procédures opérationnelles, heuristiques, erreurs courantes
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Remarques :
-- Ne pas halluciner hors contexte ; si une partie manque, indiquer "Contexte insuffisant".
-- Style clair, progressif, soigné.
+Structure OBLIGATOIRE :
+═══════════════════════
 
-Cours :
+**1) Introduction / Plan du cours**
+   - Contexte historique ou motivation
+   - Annonce du plan (9 sections)
+   - Pré-requis nécessaires
+
+**2) Définitions fondamentales**
+   🔬 Définitions formelles (avec quantificateurs si pertinent)
+   ⚙️  Définitions intuitives / opérationnelles
+   - Toutes notations explicitées
+   - Exemples triviaux / contre-exemples immédiats
+
+**3) Propriétés et Théorèmes majeurs**
+   🔬 Énoncés rigoureux (hypothèses → conclusion)
+   🔬 Esquisses de preuves (plan de démonstration, lemmes clés)
+   ⚙️  Interprétation pratique de chaque résultat
+   - Références [p.X] pour chaque théorème
+   - Conditions d'application explicites
+
+**4) Méthodes de résolution**
+   ⚙️  Algorithmes / recettes pas-à-pas
+   ⚙️  Heuristiques (quand utiliser quelle méthode)
+   🔬 Justifications théoriques des méthodes
+   - Tableaux de décision si pertinent
+
+**5) Exemples détaillés + Contre-exemples**
+   - Minimum 3 exemples canoniques résolus en détail
+   - Minimum 2 contre-exemples instructifs
+   ⚙️  Pièges fréquents et comment les éviter
+   - Calculs intermédiaires montrés
+
+**6) Exercices d'application (5-6 exercices)**
+   - Difficulté progressive (★ facile → ★★★ difficile)
+   - **Énoncé** autonome
+   - **Correction détaillée** (pas juste la réponse)
+   - **Objectif pédagogique** de chaque exercice
+   - Références [p.X] quand applicable
+
+**7) Formules clés / Formulaire**
+   - Toutes formules en $$…$$ (LaTeX)
+   - Signification de chaque variable
+   - Domaines de validité
+   - Cas particuliers / limites
+
+**8) Références bibliographiques**
+   - Toutes citations [p.X] regroupées
+   - Suggestions de lectures complémentaires (si contexte le permet)
+   - Liens avec autres chapitres
+
+**9) Mini-révision interactive**
+   - 5 questions rapides de vérification (QCM ou vrai/faux)
+   - Corrigé immédiat avec justification
+   - Ce qu'il faut ABSOLUMENT retenir (bullet points)
+
+Exigences transversales :
+━━━━━━━━━━━━━━━━━━━━━━
+✓ Français académique mais accessible
+✓ LaTeX $$…$$ pour toutes les équations
+✓ Citations [p.X] systématiques pour résultats du contexte
+✓ Si contexte insuffisant sur une section : mentionner "⚠️ Contexte limité : [section] non couverte en détail"
+✓ Alternance 🔬 CPGE-preuve / ⚙️ Appli-ingé tout au long du cours
+✓ Longueur : 30-45min de lecture intensive (environ 3000-4000 mots)
+
+Cours complet :
 """)
 
-# ============ Explication d’un cours (mode “expliquer”) ============
+# ============ Explication d'un cours (mode "expliquer" - MINI-COURS) ============
 COURSE_EXPLAIN_PROMPT = ChatPromptTemplate.from_template("""
-Explique le cours sur : "{topic}" au niveau {level}.
+Tu écris un MINI-COURS ciblé et pédagogique sur : "{topic}"
+Niveau : {level}.
 
 [Contexte du cours]
 {context}
 
-Attendus :
-- Vulgarisation maîtrisée → puis montée en rigueur.
-- Exemples concrets et analogies.
-- Mini-visualisations textuelles si utile (axes, repères, tableaux).
-- Brève FAQ (3–5 questions courantes) avec réponses.
-- Références [p.X] pour les points clés.
+OBJECTIF : Explication rapide et accessible (10-15min de lecture) pour comprendre l'essentiel de la notion.
 
-Explication :
+Ce n'est PAS un cours exhaustif avec preuves, mais une **synthèse pédagogique orientée compréhension**.
+
+Structure CONCISE (7 sections obligatoires) :
+═══════════════════════════════════════════════
+
+**1) L'essentiel en 3 phrases**
+   → Ce qu'il faut retenir ABSOLUMENT (définition intuitive + usage principal)
+
+**2) Définitions clés (seulement les indispensables)**
+   - Notations explicitées
+   - Définition formelle ET définition intuitive
+   - 1-2 exemples triviaux
+
+**3) Propriétés principales (les plus utilisées)**
+   - Énoncés clairs (pas de preuves, juste résultats)
+   - Conditions d'application
+   - Références [p.X]
+
+**4) Méthode de résolution type**
+   - Algorithme / recette pas-à-pas
+   - UN exemple détaillé
+
+**5) FAQ (3-5 questions fréquentes)**
+   Q1: [Question intuitive courante] ?
+   → Réponse courte et claire
+
+   Q2: [Piège / confusion fréquente] ?
+   → Explication + contre-exemple
+
+   Q3-Q5: Autres questions pertinentes
+
+**6) Formules à connaître**
+   - Formules en $$…$$ avec signification variables
+   - Cas particuliers importants
+
+**7) Pour aller plus loin**
+   - Références [p.X] des sections du cours complet
+   - 2-3 exercices recommandés (énoncés seulement, sans correction)
+   - Liens avec autres notions du programme
+
+Exigences :
+━━━━━━━━━━
+✓ Ton pédagogique et accessible (pas de jargon inutile)
+✓ Vulgarisation → montée progressive en rigueur
+✓ Analogies / visualisations textuelles bienvenues
+✓ LaTeX $$…$$ pour toutes les formules
+✓ Citations [p.X] pour résultats du contexte
+✓ Longueur : 10-15min de lecture (environ 800-1200 mots)
+✓ Si contexte insuffisant : indiquer brièvement ce qui manque
+
+Mini-cours :
 """)
 
 # ============ Résumé de cours ============

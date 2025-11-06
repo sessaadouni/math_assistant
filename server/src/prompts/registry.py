@@ -58,6 +58,21 @@ class PromptRegistry:
         
         raise KeyError(f"No prompt registered for task '{task}' and no default available")
     
+    def get_prompt(self, task: str) -> BasePrompt:
+        """
+        Get prompt for a task (alias for get()).
+        
+        Args:
+            task: Task identifier
+            
+        Returns:
+            Prompt instance
+            
+        Raises:
+            KeyError: If task not found and no default available
+        """
+        return self.get(task)
+    
     def get_with_doc_type(self, task: str) -> tuple[BasePrompt, str]:
         """
         Get prompt and its default document type.

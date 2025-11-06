@@ -408,6 +408,7 @@ class LegacyAssistantAdapter:
         """
         # Normalize task name
         task_lower = task.lower().strip()
+        router_override = self._memory_proxy.get_route_override()
         
         # Map to facade method
         if task_lower in {"qa", "question"}:
@@ -415,10 +416,11 @@ class LegacyAssistantAdapter:
                 question=question_or_payload,
                 doc_type=filter_type,
                 auto_link=auto_link,
-                debug=debug
+                debug=debug,
+                router_mode=router_override,
             )
         
-        elif task_lower in {"explain", "course", "cours"}:
+        elif task_lower in {"explain", "course", "cours", "course_explain"}:
             chapter = kwargs.get("chapter")
             level = kwargs.get("level", "prépa/terminale+")
             result = self._facade.explain_course(
@@ -427,7 +429,7 @@ class LegacyAssistantAdapter:
                 chapter=chapter
             )
         
-        elif task_lower == "build_course":
+        elif task_lower in {"build_course", "course_build"}:
             chapter = kwargs.get("chapter")
             level = kwargs.get("level", "prépa/terminale+")
             result = self._facade.build_course(
@@ -561,7 +563,8 @@ class LegacyAssistantAdapter:
                 question=question_or_payload,
                 doc_type=filter_type,
                 auto_link=auto_link,
-                debug=debug
+                debug=debug,
+                router_mode=router_override,
             )
             # Add tutor metadata
             result["metadata"]["task"] = "tutor"
@@ -573,7 +576,8 @@ class LegacyAssistantAdapter:
                 question=question_or_payload,
                 doc_type=filter_type,
                 auto_link=auto_link,
-                debug=debug
+                debug=debug,
+                router_mode=router_override,
             )
         
         # Update memory state for backward compatibility

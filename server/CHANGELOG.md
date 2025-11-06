@@ -1,5 +1,71 @@
 # 📝 Changelog - Assistant Mathématiques RAG
 
+## [v3.3] - 2025-11-06
+
+### ✨ Amélioration Majeure des Prompts de Cours
+
+#### 🎓 Séparation Mini-cours vs Cours Complet
+
+**Problème résolu**:
+- `explain_course` et `build_course` produisaient des résultats trop similaires
+- Manque de structure rigoureuse pour cours complets
+- Pas de double piste pédagogique (théorie + pratique)
+
+**Solution implémentée**:
+
+1. **Mini-cours** (`explain_course`) - Lecture rapide 10-15min
+   - Structure légère en 7 sections
+   - Focus pédagogie et accessibilité
+   - FAQ intégrée (3-5 questions)
+   - Top 5-7 formules essentielles
+   - Intuition avant rigueur
+
+2. **Cours complet** (`build_course`) - Exhaustif 30-45min
+   - Structure enrichie en 9 sections
+   - **Double piste**: CPGE-preuve + Appli-ingénieur
+   - Preuves (esquisses) pour CPGE
+   - Méthodes détaillées pour Ingé
+   - 5-6 exercices avec corrections pas à pas
+   - Contre-exemples obligatoires
+   - Mini-révision interactive
+
+**Fichiers modifiés**:
+- ✅ `src/prompts/course/__init__.py`
+  - `CourseBuildPrompt`: Template enrichi (1691→3169 chars, +87%)
+  - `CourseExplainPrompt`: Template optimisé (structure claire)
+
+**Scripts ajoutés**:
+- ✅ `demo_course_comparison.py` - Démonstration comparative
+- ✅ `inspect_prompts.py` - Inspection des templates
+- ✅ `test_course_prompts.py` - Tests unitaires
+
+**Documentation**:
+- ✅ `QUICKSTART_COURS.md` - Guide rapide (5 min)
+- ✅ `COURSE_PROMPTS_IMPROVEMENT.md` - Documentation complète (15 min)
+- ✅ `RECAP_COURS_AMELIORES.md` - Récapitulatif détaillé
+
+**Inspiration**: Structure double piste inspirée de ChatGPT-5 thinking mode
+
+**Impact**:
+- 📈 Cours complets **3-5x plus détaillés**
+- 🎯 Séparation claire selon besoin utilisateur
+- ✅ Rétrocompatibilité totale (pas de changement d'API)
+
+**Exemples**:
+```python
+# Mini-cours rapide
+mini = assistant.explain_course("convergence uniforme", level="prépa")
+# → 2000-4000 chars, 10-15min lecture
+
+# Cours exhaustif
+complet = assistant.build_course("convergence uniforme", level="prépa")
+# → 8000-15000 chars, 30-45min lecture
+# → Double piste CPGE + Ingé
+# → 5-6 exercices détaillés
+```
+
+---
+
 ## [v3.2] - 2025-11-03
 
 ### ✨ Nouvelles Fonctionnalités

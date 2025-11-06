@@ -137,17 +137,33 @@ class Question:
 
 @dataclass
 class Answer:
-    """Generated answer entity"""
+    """
+    Generated answer entity.
     
-    id: str
-    question_id: str
+    Supports both old-style (with sources) and new-style (with context) initialization:
+    - Old: Answer(text="...", sources=[...], metadata={...})
+    - New: Answer(id="...", question_id="...", text="...", context=Context(...))
+    """
+    
     text: str
-    chat_id: str
+    sources: Optional[List[Source]] = None  # For backward compatibility
+    id: str = field(default_factory=lambda: str(uuid4()))
+    question_id: str = ""
+    chat_id: str = ""
     created_at: datetime = field(default_factory=datetime.now)
     context: Optional[Context] = None
     task_type: Optional[str] = None
     model_used: Optional[str] = None
     execution_time: Optional[float] = None
+    metadata: Optional[Dict[str, Any]] = None
+    
+    def __post_init__(self):
+        """Post-initialization to handle sources parameter"""
+        # If sources were passed but context wasn't, use sources directly
+        if self.sources is None and self.context:
+            self.sources = self.context.sources
+        elif self.sources is None:
+            self.sources = []
     
     @classmethod
     def create(
@@ -159,6 +175,8 @@ class Answer:
         task_type: Optional[str] = None,
         model_used: Optional[str] = None,
         execution_time: Optional[float] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        sources: Optional[List[Source]] = None,
     ) -> "Answer":
         """Create new answer with generated ID"""
         return cls(
@@ -170,14 +188,9 @@ class Answer:
             task_type=task_type,
             model_used=model_used,
             execution_time=execution_time,
+            metadata=metadata,
+            sources=sources,
         )
-    
-    @property
-    def sources(self) -> List[Source]:
-        """Get list of source references"""
-        if self.context:
-            return self.context.sources
-        return []
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""

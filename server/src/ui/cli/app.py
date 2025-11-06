@@ -34,6 +34,9 @@ class MathCLI:
         self.tutor_strict = False  # True=strict (tout en guidage), False=smart (intelligent)
         self.tutor_explain = False  # Mode explanation/compréhension activé
 
+        # Niveau d'études persistant pour /cours et /mini-cours
+        self.current_level: Optional[str] = None  # None = défaut "prépa/terminale+"
+
         # Cache du dernier passport et du dernier debug record
         self._last_passport: Optional[dict] = None
         self._last_debug: Optional[dict] = None
@@ -55,6 +58,9 @@ class MathCLI:
         
         # Store backend (for display purposes)
         self.assistant.memory.state["backend"] = rag_config.runtime_default_mode
+        
+        # Store current level (for display purposes)
+        self.assistant.memory.state["current_level"] = self.current_level or "prépa/terminale+ (défaut)"
 
     def run(self):
         """Boucle principale"""
@@ -80,7 +86,8 @@ class MathCLI:
                     tutor_explain=self.tutor_explain,
                     allow_oot=self.allow_oot,
                     router_mode=router_mode,
-                    backend=rag_config.runtime_default_mode
+                    backend=rag_config.runtime_default_mode,
+                    level=self.current_level
                 )
 
                 if not question:
@@ -263,6 +270,56 @@ class MathCLI:
                 self.formatter.warning("Usage: /oot on|off")
             return True
 
+        # ----- Niveau d'études persistant -----
+        if cmd.startswith("/level"):
+            parts = cmd.split(maxsplit=1)
+            
+            # /level sans argument → afficher le niveau actuel
+            if len(parts) == 1:
+                if self.current_level:
+                    self.formatter.info(f"📚 Niveau actuel: {self.current_level}")
+                else:
+                    self.formatter.info("📚 Niveau actuel: prépa/terminale+ (défaut)")
+                return True
+            
+            level_input = parts[1].strip().lower()
+            
+            # /level reset → revenir au défaut
+            if level_input in {"reset", "clear", "default"}:
+                self.current_level = None
+                self.formatter.success("📚 Niveau réinitialisé → prépa/terminale+ (défaut)")
+                return True
+            
+            # Niveaux valides
+            valid_levels = {
+                "master", "m1", "m2",
+                "licence", "l1", "l2", "l3",
+                "cpge", "prépa", "prêpa", "prepa",
+                "spé", "math spé", "maths spé",
+                "mp", "pc", "psi", "pt",
+                "sup", "math sup", "maths sup",
+                "mpsi", "pcsi", "ptsi", "bcpst",
+                "lycée", "lycee", "terminale", "1ère", "2nde",
+                "collège", "college", "3ème", "4ème", "5ème", "6ème"
+            }
+            
+            if level_input in valid_levels:
+                self.current_level = level_input
+                
+                # Déterminer si RAG disponible
+                rag_available = level_input in {"sup", "math sup", "maths sup", "mpsi", "pcsi", "ptsi"}
+                
+                if rag_available:
+                    self.formatter.success(f"📚 Niveau défini: {level_input} (RAG disponible - 1ère année prépa)")
+                else:
+                    self.formatter.success(f"📚 Niveau défini: {level_input} (LLM uniquement - hors périmètre du livre)")
+                    self.formatter.info("💡 Le livre ne couvre que la 1ère année prépa (SUP/MPSI/PCSI/PTSI)")
+            else:
+                self.formatter.warning(f"Niveau invalide: {level_input}")
+                self.formatter.info("Niveaux valides: master, m1, m2, licence, l1-l3, prépa, mpsi, pcsi, ptsi, sup, terminale, collège, etc.")
+            
+            return True
+
         # ----- Router override: auto|rag|llm|hybrid -----
         if cmd.startswith("/router") or cmd.startswith("/route"):
             parts = cmd.split(maxsplit=1)
@@ -372,7 +429,8 @@ class MathCLI:
             self.tutor_mode = False
             self.tutor_strict = False
             self.tutor_explain = False
-            self.formatter.success("Mémoire courte et portée nettoyées • Mode tuteur désactivé")
+            self.current_level = None
+            self.formatter.success("Mémoire courte et portée nettoyées • Mode tuteur désactivé • Niveau réinitialisé")
             return True
 
         # ----- New chat -----
@@ -387,12 +445,13 @@ class MathCLI:
             self.tutor_mode = False
             self.tutor_strict = False
             self.tutor_explain = False
+            self.current_level = None
             self._last_passport = None
             self._last_debug = None
             
             chat_display = f"[cyan]{chat_name}[/]" if chat_name else self.chat_id
             self.formatter.success(
-                f"Nouveau chat: {chat_display} | Auto-link activé | Auto-pin au prochain contexte | Mode tuteur désactivé"
+                f"Nouveau chat: {chat_display} | Auto-link activé | Auto-pin au prochain contexte | Mode tuteur désactivé | Niveau réinitialisé"
             )
             return True
 
@@ -528,12 +587,86 @@ class MathCLI:
             self.formatter.answer(payload["answer"])
             return True
 
+        # ----- Mini-cours (explain_course) -----
+        if cmd.startswith("/mini-cours ") or cmd.startswith("/mini "):
+            notion = cmd.split(" ", 1)[1].strip()
+            
+            # Utiliser le niveau persistant ou le défaut
+            level = self.current_level if self.current_level else "prépa/terminale+"
+            
+            # ⚠️ IMPORTANT : Le livre ne couvre QUE la 1ère année prépa
+            # Niveaux avec RAG disponible (SUP/MPSI/PCSI/PTSI)
+            rag_available_levels = {"sup", "math sup", "maths sup", "mpsi", "pcsi", "ptsi"}
+            
+            # Forcer LLM-only pour les niveaux hors 1ère année prépa
+            if level.lower() not in rag_available_levels:
+                # Sauvegarder le mode routeur actuel
+                original_router = self.assistant.memory.get_route_override()
+                # Forcer LLM uniquement
+                self.assistant.set_route_override("llm")
+                self.formatter.info(f"📚 Mini-cours (10-15min) - Niveau: {level}")
+                self.formatter.warning(f"⚠️  Niveau hors périmètre du livre → Mode LLM uniquement (pas de RAG)")
+                
+                payload = self.assistant.run_task("course_explain", notion, level=level)
+                self._capture_backend_debug(payload)
+                
+                # Restaurer le mode routeur original
+                if original_router:
+                    self.assistant.set_route_override(original_router)
+                else:
+                    self.assistant.set_route_override("auto")
+                
+                self.formatter.sources_table(payload["docs"])
+                self.formatter.answer(payload["answer"])
+            else:
+                # Niveau 1ère année prépa : RAG disponible, mode auto normal
+                self.formatter.info(f"📚 Mini-cours (10-15min) - Niveau: {level}")
+                payload = self.assistant.run_task("course_explain", notion, level=level)
+                self._capture_backend_debug(payload)
+                self.formatter.sources_table(payload["docs"])
+                self.formatter.answer(payload["answer"])
+            
+            return True
+
+        # ----- Cours complet (build_course) -----
         if cmd.startswith("/cours "):
-            q = cmd.split(" ", 1)[1].strip()
-            payload = self.assistant.run_task("course_build", q)
-            self._capture_backend_debug(payload)
-            self.formatter.sources_table(payload["docs"])
-            self.formatter.answer(payload["answer"])
+            notion = cmd.split(" ", 1)[1].strip()
+            
+            # Utiliser le niveau persistant ou le défaut
+            level = self.current_level if self.current_level else "prépa/terminale+"
+            
+            # ⚠️ IMPORTANT : Le livre ne couvre QUE la 1ère année prépa
+            # Niveaux avec RAG disponible (SUP/MPSI/PCSI/PTSI)
+            rag_available_levels = {"sup", "math sup", "maths sup", "mpsi", "pcsi", "ptsi"}
+            
+            # Forcer LLM-only pour les niveaux hors 1ère année prépa
+            if level.lower() not in rag_available_levels:
+                # Sauvegarder le mode routeur actuel
+                original_router = self.assistant.memory.get_route_override()
+                # Forcer LLM uniquement
+                self.assistant.set_route_override("llm")
+                self.formatter.info(f"📖 Cours complet (30-45min, double piste CPGE+Ingé) - Niveau: {level}")
+                self.formatter.warning(f"⚠️  Niveau hors périmètre du livre → Mode LLM uniquement (pas de RAG)")
+                
+                payload = self.assistant.run_task("course_build", notion, level=level)
+                self._capture_backend_debug(payload)
+                
+                # Restaurer le mode routeur original
+                if original_router:
+                    self.assistant.set_route_override(original_router)
+                else:
+                    self.assistant.set_route_override("auto")
+                
+                self.formatter.sources_table(payload["docs"])
+                self.formatter.answer(payload["answer"])
+            else:
+                # Niveau 1ère année prépa : RAG disponible, mode auto normal
+                self.formatter.info(f"📖 Cours complet (30-45min, double piste CPGE+Ingé) - Niveau: {level}")
+                payload = self.assistant.run_task("course_build", notion, level=level)
+                self._capture_backend_debug(payload)
+                self.formatter.sources_table(payload["docs"])
+                self.formatter.answer(payload["answer"])
+            
             return True
 
         if cmd.startswith("/corrige-exo "):

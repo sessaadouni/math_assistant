@@ -4,6 +4,7 @@ src/ui/cli/styles.py
 Styles Rich pour le CLI (GitHub Dark inspired)
 """
 
+from typing import Optional
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
@@ -98,9 +99,11 @@ class CLIFormatter:
   • [command]/tutor[/] <énoncé>         → Mode tuteur ponctuel pour une question
   • [command]/formule[/] <description>  → Recherche/citation de formules
   • [command]/resume[/] <notion>        → Résumé / synthèse de cours
-  • [command]/cours[/] <notion>         → Mini-cours structuré
-  • [command]/corrige-exo[/] <texte>    → Correction d’exercice
-  • [command]/corrige-exam[/] <texte>   → Correction d’examen
+  • [command]/mini-cours[/] <notion>    → Mini-cours rapide (10-15min)
+  • [command]/cours[/] <notion>         → Cours complet exhaustif (30-45min)
+  • [command]/level[/] [niveau]         → Définit le niveau d'études (mpsi, L3, collège...)
+  • [command]/corrige-exo[/] <texte>    → Correction d'exercice
+  • [command]/corrige-exam[/] <texte>   → Correction d'examen
 
 [subtitle]🔍 Questions & Filtres:[/]
   • Question normale        → Pose ta question directement
@@ -660,27 +663,156 @@ Génère un résumé ou une synthèse de cours sur une notion.
   • Points clés
   • Liens entre concepts
 """,
+            "mini-cours": """
+[title]/mini-cours[/] (alias: /mini)
+
+[subtitle]Description:[/]
+Génère un mini-cours rapide et pédagogique (10-15 min de lecture).
+Idéal pour découverte rapide ou révision express.
+
+[subtitle]Usage:[/]
+  [command]/mini-cours[/] <notion>                → Niveau par défaut (prépa/terminale+)
+  [command]/mini-cours[/] <notion> <niveau>       → Avec niveau spécifique
+
+[subtitle]Niveaux reconnus:[/]
+  prépa, terminale, L1, L2, L3, licence, CPGE, MP, PC, PSI, PT, BCPST
+
+[subtitle]Exemples:[/]
+  [command]/mini-cours convergence uniforme[/]
+  [command]/mini-cours séries de Fourier prépa[/]
+  [command]/mini intégrales L2[/]
+  [command]/mini espaces vectoriels L1[/]
+
+[subtitle]Structure (7 sections):[/]
+  1. L'essentiel en 3 phrases
+  2. Définitions clés (indispensables)
+  3. Propriétés principales (top 3-4)
+  4. Méthode type + 1 exemple
+  5. Mini-FAQ (3-5 questions courantes)
+  6. Formules à retenir (top 5-7)
+  7. Pour aller plus loin
+
+[subtitle]Durée lecture: 10-15 minutes[/]
+
+[subtitle]Différence avec /cours:[/]
+  • [command]/mini-cours[/] → Rapide, pédagogique, FAQ
+  • [command]/cours[/] → Exhaustif, rigoureux, exercices détaillés
+
+[subtitle]Voir aussi:[/]
+  • [command]/cours[/] - Cours complet exhaustif
+  • [command]/resume[/] - Résumé synthétique
+""",
             "cours": """
 [title]/cours[/]
 
 [subtitle]Description:[/]
-Génère un mini-cours structuré sur une notion ou recherche dans tout le cours
-(selon le contexte d'utilisation).
+Génère un cours COMPLET et rigoureux (30-45 min de lecture).
+Double piste pédagogique: CPGE-preuve + Appli-ingénieur.
+Idéal pour apprentissage approfondi ou préparation concours.
 
 [subtitle]Usage:[/]
-  [command]/cours[/] <notion>  → Génère un mini-cours
-  [command]/cours[/] <q>       → Recherche filtrée (après question)
+  [command]/cours[/] <notion>                → Niveau par défaut (prépa/terminale+)
+  [command]/cours[/] <notion> <niveau>       → Avec niveau spécifique
+
+[subtitle]Niveaux reconnus:[/]
+  prépa, terminale, L1, L2, L3, licence, CPGE, MP, PC, PSI, PT, BCPST
 
 [subtitle]Exemples:[/]
-  [command]/cours séries de Fourier[/]
-  [command]/cours limites et continuité[/]
+  [command]/cours convergence uniforme[/]
+  [command]/cours séries de Fourier prépa[/]
+  [command]/cours intégrales L2[/]
+  [command]/cours espaces vectoriels L3[/]
 
-[subtitle]Structure du mini-cours:[/]
-  • Introduction
-  • Définitions
-  • Théorèmes
-  • Exemples
-  • Applications
+[subtitle]Structure (9 sections):[/]
+  1. Introduction / plan détaillé
+  2. Définitions + notations formelles
+  3. Propriétés / théorèmes (CPGE + Ingé)
+  4. Méthodes / algorithmes (double piste)
+  5. Exemples (3-4) + contre-exemples (2-3)
+  6. Exercices détaillés (5-6 avec corrections)
+  7. Formules clés en contexte
+  8. Références [p.X]
+  9. Mini-révision interactive
+
+[subtitle]Double piste pédagogique:[/]
+  [key]Piste CPGE:[/]
+    • Définitions formelles (ε-δ si pertinent)
+    • Esquisses de preuves
+    • Justifications théoriques
+    • Conditions nécessaires vs suffisantes
+
+  [key]Piste Ingénieur:[/]
+    • Critères pratiques d'application
+    • Checklists étape par étape
+    • Heuristiques et astuces
+    • Erreurs fréquentes
+
+[subtitle]Durée lecture: 30-45 minutes[/]
+
+[subtitle]Différence avec /mini-cours:[/]
+  • [command]/mini-cours[/] → Rapide (10-15min), pédagogique
+  • [command]/cours[/] → Exhaustif (30-45min), rigoureux
+
+[subtitle]Cas d'usage:[/]
+  • Préparation examen/concours
+  • Apprentissage approfondi
+  • Besoin de preuves et rigueur
+  • Travail sur exercices variés
+
+[subtitle]Voir aussi:[/]
+  • [command]/mini-cours[/] - Mini-cours rapide
+  • [command]/resume[/] - Résumé synthétique
+""",
+            "level": """
+[title]/level[/]
+
+[subtitle]Description:[/]
+Définit le niveau d'études de manière persistante pour toutes les commandes 
+[command]/cours[/] et [command]/mini-cours[/] qui suivent, jusqu'à reset.
+
+Plus besoin de spécifier le niveau à chaque fois ! Définissez-le une fois, 
+et il sera automatiquement utilisé pour tous les cours générés.
+
+[subtitle]Usage:[/]
+  [command]/level[/]                → Affiche le niveau actuel
+  [command]/level[/] <niveau>       → Définit le niveau persistant
+  [command]/level reset[/]          → Réinitialise au défaut (prépa/terminale+)
+
+[subtitle]Niveaux reconnus:[/]
+  [info]Collège:[/] sixième, cinquième, quatrième, troisième
+  [info]Lycée:[/] seconde, première, terminale
+  [info]Classes prépa (SUP):[/] sup, mpsi, pcsi, ptsi, bcpst, ecs, ecg
+  [info]Classes prépa (SPE):[/] spe, mp, mp*, pc, pc*, psi, psi*, pt, pt*
+  [info]Université:[/] L1, L2, L3, licence, M1, M2, master
+  [info]Ingénieur:[/] école d'ingénieur
+
+[subtitle]Accès au RAG (livre):[/]
+  ✅ [value]Disponible pour:[/] SUP, MPSI, PCSI, PTSI (1ère année prépa)
+  ⚠️  [warning]Hors livre:[/] Autres niveaux utilisent le LLM uniquement
+
+[subtitle]Exemples:[/]
+  [command]/level mpsi[/]
+  [command]/cours intégrales[/]          ← utilise niveau MPSI + RAG
+  [command]/mini-cours séries[/]         ← utilise niveau MPSI + RAG
+  [command]/level L3[/]
+  [command]/cours algèbre linéaire[/]    ← utilise niveau L3, LLM seul
+  [command]/level reset[/]               ← retour au défaut
+
+[subtitle]Persistance:[/]
+  • Le niveau reste actif pour toute la session
+  • Réinitialisé automatiquement par [command]/forget[/] ou [command]/new-chat[/]
+  • Badge visible dans le prompt: [dim][[/][value]📚 MPSI[/][dim]][/]
+
+[subtitle]Cas d'usage:[/]
+  • Étudiant prépa: [command]/level mpsi[/] puis génération de cours/mini-cours
+  • Étudiant universitaire: [command]/level L3[/] pour adapter le vocabulaire
+  • Collégien: [command]/level cinquième[/] pour contenu simplifié
+  • Préparation concours: [command]/level mp*[/] pour niveau avancé
+
+[subtitle]Voir aussi:[/]
+  • [command]/cours[/] - Cours complet exhaustif
+  • [command]/mini-cours[/] - Mini-cours rapide
+  • [command]/router[/] - Force RAG ou LLM manuellement
 """,
             "exercice": """
 [title]/exercice[/]
@@ -937,7 +1069,8 @@ Quand tu veux changer de sujet complètement sans créer un nouveau chat.
         tutor_explain: bool = False,
         allow_oot: bool = True,
         router_mode: str = "auto",
-        backend: str = "local"
+        backend: str = "local",
+        level: Optional[str] = None
     ) -> str:
         """
         Display prompt with system status badges and separate input line.
@@ -958,6 +1091,8 @@ Quand tu veux changer de sujet complètement sans créer un nouveau chat.
             Router mode: auto/rag/llm/hybrid
         backend : str
             Backend mode: local/cloud/hybrid
+        level : Optional[str]
+            Current academic level (e.g., 'mpsi', 'L3', etc.)
         """
         # Build status badges (like a real system)
         badges = []
@@ -995,6 +1130,15 @@ Quand tu veux changer de sujet complètement sans créer un nouveau chat.
         
         if tutor_explain:
             badges.append("[dim][[/][value]🧠 EXPLAIN[/][dim]][/]")
+        
+        # Level badge
+        if level:
+            # Check if RAG is available for this level
+            rag_levels = {"sup", "math sup", "maths sup", "mpsi", "pcsi", "ptsi"}
+            if level.lower() in rag_levels:
+                badges.append(f"[dim][[/][value]📚 {level.upper()}[/][dim]][/]")
+            else:
+                badges.append(f"[dim][[/][info]📚 {level.upper()}[/][dim]][/]")
         
         # Display status line with badges (non-editable)
         badge_str = " ".join(badges)

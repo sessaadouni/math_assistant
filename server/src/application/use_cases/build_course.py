@@ -72,9 +72,13 @@ class BuildCourseUseCase:
             "context": context,
         }
         
+        # Format prompt with variables
+        formatted_prompt = prompt_template.format(**variables)
+        
+        # Generate course
         result_text = self.llm.generate(
-            prompt_template=prompt_template,
-            variables=variables
+            prompt=formatted_prompt,
+            temperature=0.1,
         )
         
         return Answer(
